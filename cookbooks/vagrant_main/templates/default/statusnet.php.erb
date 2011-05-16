@@ -1,0 +1,44 @@
+<?php
+if (!defined('STATUSNET') && !defined('LACONICA')) { exit(1); }
+
+$_wildcard = '<%= node[:host] %>';
+
+$config['site']['fancy'] = true;
+
+$config['site']['logfile'] = '/tmp/statusnet.log';
+$config['site']['logdebug'] = true;
+
+$_memc = '127.0.0.1';
+
+// Status Network Config
+Status_network::setupDB('localhost', 'root', 'walkah', 'statusnet', $_memc);
+$sn = Status_network::setupSite($_server, $_path, $_wildcard);
+
+if (empty($sn)) {
+    die('No Such Site');
+}
+
+$config['memcached']['enabled'] = false;
+$config['memcached']['server'] = $_memc;
+$config['memcached']['base'] = $sn->nickname;
+
+// Queue stuff
+$config['queue']['enabled'] = true;
+$config['queue']['subsystem'] = 'stomp';
+$config['queue']['queue_basename'] = '/queue/'. $sn->nickname .'/';
+// To set all queues to non-persistent
+$config['queue']['stomp_persistent'] = false;
+//  To set up round-robin + failover using multiple queue servers:
+$config['queue']['stomp_server'] = array(
+  'tcp://127.0.0.1:61613',
+);
+
+$config['queue']['inboxes'] = true;
+$config['queue']['softlimit'] = '96m';
+
+// To prioritize inbox saves globally
+$config['queue']['breakout'][] = 'main/distrib';
+
+// Control for discarding items that cause fatal errors
+$config['queue']['max_retries'] = 10;
+
