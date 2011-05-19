@@ -2,7 +2,6 @@
   ServerName <%= @params[:server_name] %>
   ServerAlias <% @params[:server_aliases].each do |a| %><%= "#{a}" %> <% end %>
   DocumentRoot <%= @params[:docroot] %>
-  RewriteEngine On
   
   <Directory <%= @params[:docroot] %>>
     Options FollowSymLinks
@@ -10,6 +9,7 @@
     Order allow,deny
     Allow from all
 
+    RewriteEngine On
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule (.*) index.php?p=$1 [L,QSA]  
